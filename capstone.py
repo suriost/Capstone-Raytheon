@@ -1,13 +1,33 @@
 import hashlib
 import datetime
+import os
 
-# harcoded input string
-text = "asu"
+# check if hash_results.txt is decrypted
+def is_decrypted():
+    if not os.path.exists("hash_results.txt"):
+        # message to display if it is not found
+        print("hash_results.txt not found.")
+        return False
+    
+    try:
+        with open("hash_results.txt", "r") as file:
+            content = file.read(100)  # Read a small portion to check
+            if "Error: Invalid option" in content or "MD5 Hash:" in content:
+                return True
+    except Exception as e:
+        print(f"Error reading file: {e}")
+    
+    print("hash_results.txt appears to be encrypted or unreadable.")
+    return False
 
-#collecting user input
+# we will exit the program if hahs_results.txt is not decrypted
+if not is_decrypted():
+    exit()
+
+# collecting user input
 hash_input = input("Hash This: ")
 
-# 1 to encrypt or 2 to decrypt
+# 4720 to encrypt
 hash_decision = int(input("Enter your choice: "))
 
 def encryption(hash_input):
@@ -60,12 +80,9 @@ if hash_decision == 1:
         file.write(f"{timestamp} - MD5 Hash: {current_hash}\n")
         file.write("\n")
 
-    # Printing the final result to the console
-    print(f"MD5 Hash: {current_hash}")
-    print("Hash saved")
-
 elif hash_decision == 2:
     # decryption()
     pass
 else:
     invalid()
+    print("Error found: Invalid Option")
