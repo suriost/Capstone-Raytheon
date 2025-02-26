@@ -4,6 +4,9 @@ from cryptography.fernet import Fernet
 key = Fernet.generate_key()
 
 # Save the key to a file
+with open("hash_results.txt", "wb") as hash_file:
+    print("Hash results created ")
+
 with open("secret.key", "wb") as key_file:
     key_file.write(key)
 

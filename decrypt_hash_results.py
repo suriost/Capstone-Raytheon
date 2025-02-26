@@ -3,7 +3,7 @@ import os
 
 # Load the AES key
 def load_key():
-    with open("/Users/jesussolis/Downloads/capstone25/secret.key", "rb") as key_file:
+    with open("secret.key", "rb") as key_file:
         return key_file.read()
 
 # Decrypt the file
