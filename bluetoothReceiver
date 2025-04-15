@@ -1,0 +1,50 @@
+from bluepy.btle import Scanner, DefaultDelegate, Peripheral, UUID
+
+# ESP32 BLE details
+ESP32_BLE_NAME = "ESP32_Sensor_Device"
+SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+
+class ScanDelegate(DefaultDelegate):
+    def __init__(self):
+        DefaultDelegate.__init__(self)
+
+    def handleDiscovery(self, dev, isNewDev, isNewData):
+        if isNewDev:
+            print(f"Discovered device: {dev.addr} ({dev.getValueText(9)})")
+        elif isNewData:
+            print("Received new data from", dev.addr)
+
+def connect_and_read():
+    print("Scanning for BLE devices...")
+    scanner = Scanner().withDelegate(ScanDelegate())
+    devices = scanner.scan(5.0)  # Scan for 5 seconds
+
+    esp32_device = None
+    for dev in devices:
+        if dev.getValueText(9) == ESP32_BLE_NAME:
+            esp32_device = dev
+            print(f"Found {ESP32_BLE_NAME} at {dev.addr}")
+            break
+
+    if not esp32_device:
+        print("ESP32 not found. Is it advertising?")
+        return
+
+    print(f"Connecting to {ESP32_BLE_NAME}...")
+    p = Peripheral(esp32_device.addr)
+    service = p.getServiceByUUID(UUID(SERVICE_UUID))
+    characteristic = service.getCharacteristics(UUID(CHARACTERISTIC_UUID))[0]
+
+    print("Connected! Waiting for data...")
+    try:
+        while True:
+            if characteristic.supportsRead():
+                data = characteristic.read()
+                print(f"Sensor Value: {data.decode('utf-8')}")
+    except KeyboardInterrupt:
+        print("Disconnecting...")
+        p.disconnect()
+
+if __name__ == "__main__":
+    connect_and_read()
