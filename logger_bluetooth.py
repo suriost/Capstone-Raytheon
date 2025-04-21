@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 
 # === CONFIGURATION ===
-SERIAL_PORT = '/dev/ttyUSB0'  # For wired connection
+SERIAL_PORT = '/dev/rfcomm0 '  # For Bluetooth Connection
 BAUD_RATE = 9600
 LOG_FILE = '/home/pi/arduino_data.log'
 
