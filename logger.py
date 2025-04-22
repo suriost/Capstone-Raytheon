@@ -1,28 +1,57 @@
 import serial
 import time
 from datetime import datetime
+import os
+import csv
 
-# === CONFIGURATION ===
+# * * * * * CONFIGURATION * * * * * 
 SERIAL_PORT = '/dev/ttyUSB0'  # For wired connection
 BAUD_RATE = 9600
-LOG_FILE = '/home/pi/arduino_data.log'
+BASE_DIR = '/home/pi/arduino_logs'
 
-# === HELPER FUNCTION ===
+# * * * * * Log to respective file * * * * 
+def log_data(keyword, content):
+    timestamp = datetime.now().isoformat()  # Saves timestamp of log
+    
+    # Save log to respective file based on keyword
+    # TODO: ADD INFO VERIFICAITON FUNCTIONS/PROGRAMS FOR ERROR MESSAGES 
+    keyword_upper = keyword.upper()         
+    match keyword_upper:    # Finds filename
+        case 'HASH':
+            file_name = 'hashes.csv'
+        case 'ULTRASENSOR':
+            file_name = 'ultrasensor.csv'
+        # TODO: Change based on other sensor names
+        case 'SENSOR':
+            file_name = 'sensors.csv'
+        case _:
+            file_name = 'unknown.csv'
+
+    file_path = os.path.join(BASE_DIR, file_name)   # Creates fullpath to file      EX: '/home/pi/arduino_logs/hashes.csv'
+    file_exists = os.path.isfile(file_path)         # Checks if file exists already
+
+    with open(file_path, 'a', newline='') as csvfile:   # Adds to or creates file 
+        writer = csv.writer(csvfile)
+        if not file_exists:
+            writer.writerow(['timestamp', 'data'])  # Creates header
+        writer.writerow([timestamp, content])       # Saves content to file
+    
+    print(f"Saved to {file_path}: {timestamp}, {content}")  # Checker output
+
+# * * * * * Parse and Formats Log Line * * * * * 
 def parse_and_log(line):
-    timestamp = datetime.now().isoformat()
     parts = line.strip().split(' ', 1)
     
+    # ******** FIXME: CHANGE BASED ON OUTPUTS OR REMOVE **********
     if len(parts) < 2:
         print(f"[WARN] Invalid data: {line}")
         return
     
     keyword, content = parts
-    with open(LOG_FILE, 'a') as f:
-        f.write(f"{timestamp} [{keyword}] {content}\n")
-    
-    print(f"Received [{keyword}]: {content}")
+    log_data(keyword, content)
 
-# === MAIN LOOP ===
+
+# * * * * * Main Loop * * * * * 
 def listen_serial():
     print(f"Connecting to {SERIAL_PORT} at {BAUD_RATE} baud...")
     try:
@@ -39,39 +68,3 @@ def listen_serial():
 
 if __name__ == '__main__':
     listen_serial()
-
-
-
-
-
-
-# import logging
-# import os
-# import time
-# import json
-
-# LOG_DIR = "/var/log/security_automation"
-# LOG_FILE = os.path.join(LOG_DIR, "automation_log.json")
-
-# logging.basicConfig(filemode="error_logs.txt", level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# def log_error(event, details, alert=False):
-#     error_data = {
-#         "timestamp": time.time(),
-#         "event": event,
-#         "details":"An internal error occured."
-#     }
-
-#     # Write error to log file in JSON format
-#     with open(LOG_FILE, "a") as file:
-#         file.write(json.dumps(error_data) + "\n")
-
-#     logging.error(f"{event}: {details}")
-
-
-# """ def run_log(command):
-#     try:
-#         result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-#         return result.stdout
-#     except subprocess.CallProcessError as e:
-#         log_error("Task Failed", f"Command: {command}, Error {e}", alert=True ) """
